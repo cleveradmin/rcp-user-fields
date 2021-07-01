@@ -241,4 +241,20 @@ function ag_rcp_import_custom_fields( $user_id, $user_data, $subscription_id, $s
 
 }
 
+/**
+ * Register a custom menu page.
+ */
+function rcp_register_settings_page() {
+    add_menu_page(
+        __( 'RCP User fields', 'textdomain' ),
+        'custom menu',
+        'manage_options',
+        'rcp-user-fields/settingn-admin.php',
+        '',
+        plugins_url( 'rcp-user-fields/images/icon.png' ),
+    );
+}
+add_action( 'admin_menu', 'rcp_register_settings_page');
+
+
 add_action( 'rcp_user_import_user_added', 'ag_rcp_import_custom_fields', 10, 6 );
