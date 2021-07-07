@@ -69,6 +69,54 @@ add_action( 'rcp_profile_editor_after', 'pw_rcp_add_user_fields' );
  * Adds the custom fields to the member edit screen
  *
  */
+function pw_rcp_add_member_edit_fields_2( $user_id = 0 ) {
+    $results = $wpdb->get_results( 
+     $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customefields")
+             );
+	?>
+    <?php foreach ($resutls as $row): ?>
+        <?php
+            $value = get_user_meta( $user_id, $row['name'], true );
+        ?>
+        <?php if ( $row['type'] == 'Text' ): ?>
+
+            <tr valign="top">
+                <th scope="row" valign="top">
+                    <label for="rcp_<?=$row['name']?>"><?php _e( $row['name'], 'rcp' ); ?></label>
+                </th>
+                <td>
+                    <input name="rcp_<?=$row['name']?>" id="rcp_<?=$row['name']?>" type="text" value="<?php echo esc_attr( $value ); ?>"/>
+                    <p class="description"><?php _e( $row['description'], 'rcp' ); ?></p>
+                </td>
+            </tr>
+        <?php elseif ( $row['type'] == 'Dropdown' ): ?>
+            <?php
+                $options = explode(",", $row['options']);
+            ?>
+            <tr valign="top">
+                <th scope="row" valign="top">
+                    <label for="rcp_<?=$row['name']?>"><?php _e( $row['name'], 'rcp' ); ?></label>
+                </th>
+                <td>
+                    <select id="rcp_<?=$row['name']?>" name="rcp_<?=$row['name']?>">
+                        <?php foreach ( $options as $option ): ?>
+                            <?php if ( $option == $value ): ?>
+                                <option value="<?=$option?>" selected><?=$option?></opyion>
+                            <?php else: ?>
+                                <option value="<?=$option?>"><?=$option?></option>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+            </tr>
+        <?php endif; ?>
+    <?php endforeach; ?>
+    <?php
+}
+/**
+ * Adds the custom fields to the member edit screen
+ *
+ */
 function pw_rcp_add_member_edit_fields( $user_id = 0 ) {
 
 	$address = get_user_meta( $user_id, 'rcp_address', true );
@@ -125,7 +173,26 @@ function pw_rcp_add_member_edit_fields( $user_id = 0 ) {
     </tr>
 	<?php
 }
-add_action( 'rcp_edit_member_after', 'pw_rcp_add_member_edit_fields' );
+
+/**
+ * Determines if there are problems with the registration data submitted
+ *
+ */
+function pw_rcp_validate_user_fields_on_register_2( $posted ) {
+    global $wpdb;
+    $results = $wpdb->get_results( 
+        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customefields")
+    );
+
+    foreach( $results as $result ) {
+
+        $key = sprintf("rcp_%s", $result['name']);
+        if ( $result['required'] && empty( $posted[$key] ) ) {
+            $invalid_field = 'invalid_'. $result['name'];
+            rcp_errors()->add( $invalid_field, __( 'Please enter your ' . $result['name'], 'rcp' ), 'register' );
+        }
+    }
+}
 
 /**
  * Determines if there are problems with the registration data submitted
@@ -139,6 +206,25 @@ function pw_rcp_validate_user_fields_on_register( $posted ) {
 
 }
 add_action( 'rcp_form_errors', 'pw_rcp_validate_user_fields_on_register', 10 );
+
+/**
+ * Stores the information submitted during registration
+ *
+ */
+function pw_rcp_save_user_fields_on_register_2( $posted, $user_id ) {
+    global $wpdb;
+    $results = $wpdb->get_results( 
+        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customefields")
+    );
+
+    foreach( $results as $result ) {
+
+        $key = sprintf("rcp_%s", $result['name']);
+        if ( $result['required'] && empty( $posted[$key] ) ) {
+            update_user_meta( $user_id, $key, sanitize_text_field( $posted[$key] ) );
+        }
+    }
+}
 
 /**
  * Stores the information submitted during registration
@@ -163,6 +249,26 @@ function pw_rcp_save_user_fields_on_register( $posted, $user_id ) {
     }
 }
 add_action( 'rcp_form_processing', 'pw_rcp_save_user_fields_on_register', 10, 2 );
+
+/**
+ * Stores the information submitted profile update
+ *
+ */
+function pw_rcp_save_user_fields_on_profile_save_2( $user_id ) {
+    global $wpdb;
+    $results = $wpdb->get_results( 
+        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customefields")
+    );
+
+    foreach( $results as $result ) {
+
+        $key = sprintf("rcp_%s", $result['name']);
+        if( ! empty( $_POST[$key] ) ) {
+            update_user_meta( $user_id, $key, sanitize_text_field( $_POST[$key] ) );
+        }
+    }
+}
+
 
 /**
  * Stores the information submitted profile update
@@ -195,6 +301,35 @@ function pw_rcp_save_user_fields_on_profile_save( $user_id ) {
 }
 add_action( 'rcp_user_profile_updated', 'pw_rcp_save_user_fields_on_profile_save', 10 );
 add_action( 'rcp_edit_member', 'pw_rcp_save_user_fields_on_profile_save', 10 );
+
+
+/**
+ * Import custom user fields
+ *
+ * @param int    $user_id         ID number of the user being imported.
+ * @param array  $user_data       Array of user data, including first name, last name, and email.
+ * @param int    $subscription_id ID number of the subscription this user is being added to.
+ * @param string $status          Status this user is being set to.
+ * @param string $expiration      User's new expiration date in MySQL format.
+ * @param array  $row             Array of all data in this user's row.
+ */
+function ag_rcp_import_custom_fields_2( $user_id, $user_data, $subscription_id, $status, $expiration, $row ) {
+
+    global $wpdb;
+    $results = $wpdb->get_results( 
+        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customefields")
+    );
+
+    foreach( $results as $result ) {
+
+        $key = sprintf("rcp_%s", $result['name']);
+        $value = $row[$key];
+
+        if ( ! empty( $value ) ) {
+            update_user_meta( $user_id, $key, sanitize_text_field( $value ) );
+        }
+    }
+}
 
 /**
  * Import custom user fields
@@ -258,3 +393,4 @@ add_action( 'admin_menu', 'rcp_register_settings_page');
 
 
 add_action( 'rcp_user_import_user_added', 'ag_rcp_import_custom_fields', 10, 6 );
+
