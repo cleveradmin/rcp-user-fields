@@ -6,6 +6,7 @@ Version: 1.0
 Author: Clever IT
 Author URI: https://cleverit.ca
 */
+require_once(__DIR__."/qrcode.php");
 
 function shortcode1($params=array()) {
     $message = "You must be a household member to view this page.";
@@ -31,10 +32,23 @@ function shortcode4($params=array()) {
 
 
 function shortcode5($params=array()) {
-    $size="150";
-    $field="ID";
-    $shortcode1 = sprintf('[kaya_qrcode_dynamic size="%s"]ECCA-[su_user field="%s"][/kaya_qrcode_dynamic]', $size, $field);
-    echo do_shortcode($shortcode1);
+    $id = get_current_user_id()
+    $data = sprintf("ECCA-%s", $id);
+    $options = array('w' => 150);
+    $generator = new QRCode($data, $options);
+
+    /* Output directly to standard output. */
+    $generator->output_image();
+
+    /* Create bitmap image. */
+    $image = $generator->render_image();
+    ob_start (); 
+    imagejpeg ($image);
+    $image_data = ob_get_contents(); 
+    ob_end_clean (); 
+    $image_data_base64 = base64_encode ($image_data);
+    $img = sprintf('<img src="data:image/png;base64, %s" alt="QR code" />', $image_data_base64);
+    echo $img;
 }
 
 
