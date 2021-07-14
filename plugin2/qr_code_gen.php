@@ -20,10 +20,8 @@ function shortcode2($params=array()) {
 }
 
 function shortcode3($params=array()) {
-    $message = "You must be a household member to view this page.";
-    $paid = "true";
-    $shortcode1 = sprintf('[su_user field="ID"]');
-    echo do_shortcode($shortcode1);
+    $id = get_current_user_id()
+    echo $id;
 }
 
 function shortcode4($params=array()) {
