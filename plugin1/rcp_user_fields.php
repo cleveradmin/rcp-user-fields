@@ -70,8 +70,9 @@ add_action( 'rcp_profile_editor_after', 'pw_rcp_add_user_fields' );
  *
  */
 function pw_rcp_add_member_edit_fields_2( $user_id = 0 ) {
+    global $wpdb;
     $results = $wpdb->get_results( 
-     $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customefields")
+     $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customfields")
              );
 	?>
     <?php foreach ($resutls as $row): ?>
@@ -179,9 +180,10 @@ function pw_rcp_add_member_edit_fields( $user_id = 0 ) {
  *
  */
 function pw_rcp_validate_user_fields_on_register_2( $posted ) {
+
     global $wpdb;
     $results = $wpdb->get_results( 
-        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customefields")
+        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customfields")
     );
 
     foreach( $results as $result ) {
@@ -214,7 +216,7 @@ add_action( 'rcp_form_errors', 'pw_rcp_validate_user_fields_on_register', 10 );
 function pw_rcp_save_user_fields_on_register_2( $posted, $user_id ) {
     global $wpdb;
     $results = $wpdb->get_results( 
-        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customefields")
+        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customfields")
     );
 
     foreach( $results as $result ) {
@@ -257,7 +259,7 @@ add_action( 'rcp_form_processing', 'pw_rcp_save_user_fields_on_register', 10, 2 
 function pw_rcp_save_user_fields_on_profile_save_2( $user_id ) {
     global $wpdb;
     $results = $wpdb->get_results( 
-        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customefields")
+        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customfields")
     );
 
     foreach( $results as $result ) {
@@ -317,7 +319,7 @@ function ag_rcp_import_custom_fields_2( $user_id, $user_data, $subscription_id, 
 
     global $wpdb;
     $results = $wpdb->get_results( 
-        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customefields")
+        $wpdb->prepare("SELECT count(ID) as total FROM {$wpdb->prefix}rcp_customfields")
     );
 
     foreach( $results as $result ) {

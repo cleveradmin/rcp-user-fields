@@ -27,8 +27,8 @@ function shortcode3($params=array()) {
 }
 
 function shortcode4($params=array()) {
-    $shortcode1 = sprintf('[user_expiration]');
-    echo do_shortcode($shortcode1);
+    $value = rcp_get_expiration_date(get_current_user_id());
+    echo $value;
 }
 
 
