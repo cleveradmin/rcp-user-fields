@@ -21,7 +21,7 @@ function shortcode2($params=array()) {
 }
 
 function shortcode3($params=array()) {
-    $id = get_current_user_id()
+    $id = get_current_user_id();
     echo $id;
 }
 
@@ -32,7 +32,7 @@ function shortcode4($params=array()) {
 
 
 function shortcode5($params=array()) {
-    $id = get_current_user_id()
+    $id = get_current_user_id();
     $data = sprintf("ECCA-%s", $id);
     $options = array('w' => 150);
     $generator = new QRCode($data, $options);
