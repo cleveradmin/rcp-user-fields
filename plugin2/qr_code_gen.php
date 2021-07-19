@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Moez QR code generator
-Description: Custom user fields for community assocations.
+Description: Adds a shortcode to create custom QR code template
 Version: 1.0
 Author: Clever IT
 Author URI: https://cleverit.ca
